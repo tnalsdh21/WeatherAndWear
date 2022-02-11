@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "860250645937",
+    "project_id": "fir-weatherandwear",
+    "storage_bucket": "fir-weatherandwear.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:860250645937:android:e146d7ca1efd09378ec990",
+        "android_client_info": {
+          "package_name": "kor.sookmyung.grad_project"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "860250645937-0ho6lltjgmt43vqch1pir5eairc453pq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDx_1lnqPQSqEobAAFLu3uZ29o3Iat_ass"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "860250645937-0ho6lltjgmt43vqch1pir5eairc453pq.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
