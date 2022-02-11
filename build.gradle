@@ -17,9 +17,3 @@ task clean(type: Delete) {
     delete rootProject.buildDir
 }
 
-////firebase때문에 아래문단 추
-//allprojects {
-//    repositories {
-//        google()  // Google's Maven repository
-//    }
-//}

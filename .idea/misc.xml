@@ -3,9 +3,7 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
-        <entry key="..\:/Android(Java)/WeatherAndWear/app/src/main/res/layout/activity_login.xml" value="0.25364583333333335" />
-        <entry key="..\:/Android(Java)/WeatherAndWear/app/src/main/res/layout/activity_main.xml" value="0.25364583333333335" />
-        <entry key="..\:/Android(Java)/WeatherAndWear/app/src/main/res/layout/activity_register.xml" value="0.25364583333333335" />
+        <entry key="app/src/main/res/layout/activity_main.xml" value="0.16979166666666667" />
       </map>
     </option>
   </component>
