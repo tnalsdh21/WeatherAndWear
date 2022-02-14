@@ -18,7 +18,7 @@
         app:srcCompat="@drawable/ic_baseline_cloud_circle_24" />
 
     <EditText
-        android:id="@+id/editTextTextPassword"
+        android:id="@+id/register_password"
         android:layout_width="300dp"
         android:layout_height="48dp"
         android:ems="10"
@@ -85,12 +85,12 @@
         android:layout_marginLeft="56dp" />
 
     <EditText
-        android:id="@+id/editTextTextPersonName"
+        android:id="@+id/register_email"
         android:layout_width="300dp"
         android:layout_height="48dp"
         android:ems="10"
         android:hint="이메일을 입력하세요"
-        android:inputType="textPersonName"
+        android:inputType="textEmailAddress"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.504"
         app:layout_constraintStart_toStartOf="parent"

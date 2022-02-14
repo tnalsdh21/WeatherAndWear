@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <group android:checkableBehavior="single">
+        <item android:id="@+id/menu_first"
+            android:title="메뉴첫번째" />
+
+        <item android:id="@+id/menu_logout"
+            android:title="로그아웃" />
+
+        <item android:id="@+id/menu_withdraw"
+            android:title="탈퇴하기" />
+
+    </group>
+</menu>
