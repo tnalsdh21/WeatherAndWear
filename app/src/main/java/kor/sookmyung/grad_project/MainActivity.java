@@ -32,7 +32,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 public class MainActivity extends AppCompatActivity {
-
+    // 로그아웃 기능과 탈퇴 기능을 위한 변수 설정
     private FirebaseAuth mFirebaseAuth;
 
     // 툴바를 위한 변수 설정
@@ -55,6 +55,36 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 drawerLayout.openDrawer(Gravity.LEFT);
+            }
+        });
+
+        NavigationView navigationView = findViewById(R.id.navigationView);
+        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                item.setChecked(true);
+                drawerLayout.closeDrawers();
+
+                mFirebaseAuth = FirebaseAuth.getInstance();
+                int id = item.getItemId();
+
+                if (id == R.id.menu_first) {
+                    Toast.makeText(MainActivity.this,"첫번째 메뉴", Toast.LENGTH_SHORT).show();
+                } else if (id == R.id.menu_logout) {
+                    Intent intent = new Intent(MainActivity.this, loginActivity.class);
+                    mFirebaseAuth.signOut();
+                    // 현재 액티비티를 종료 -> mainActivity 종료
+                    finish();
+                    startActivity(intent);
+                } else if (id == R.id.menu_withdraw) {
+                    Intent intent = new Intent(MainActivity.this, loginActivity.class);
+                    mFirebaseAuth.getCurrentUser().delete();
+                    // 현재 액티비를 종료 -> mainActivity 종료
+                    finish();
+                    startActivity(intent);
+                }
+
+                return false;
             }
         });
 
