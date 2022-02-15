@@ -3,6 +3,14 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Android(Java)/WeatherAndWear/app/src/main/res/layout/activity_login.xml" value="0.25364583333333335" />
+        <entry key="..\:/Android(Java)/WeatherAndWear/app/src/main/res/layout/activity_main.xml" value="0.1" />
+        <entry key="..\:/Android(Java)/WeatherAndWear/app/src/main/res/layout/activity_register.xml" value="0.25364583333333335" />
+        <entry key="..\:/Android(Java)/WeatherAndWear/app/src/main/res/layout/appbar.xml" value="0.264" />
+        <entry key="..\:/Android(Java)/WeatherAndWear/app/src/main/res/layout/navi_header.xml" value="0.264" />
+        <entry key="..\:/Android(Java)/WeatherAndWear/app/src/main/res/layout/navi_menu.xml" value="0.1" />
+        <entry key="..\:/Android(Java)/WeatherAndWear/app/src/main/res/layout/navigation_item.xml" value="0.25364583333333335" />
+        <entry key="..\:/Android(Java)/WeatherAndWear/app/src/main/res/menu/navi_menu.xml" value="0.25364583333333335" />
         <entry key="app/src/main/res/layout/activity_login.xml" value="0.2548245614035088" />
         <entry key="app/src/main/res/layout/activity_main.xml" value="0.16979166666666667" />
         <entry key="app/src/main/res/layout/activity_register.xml" value="0.2548245614035088" />
