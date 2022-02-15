@@ -32,6 +32,10 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+
+
 public class MainActivity extends AppCompatActivity {
     // 로그아웃 기능과 탈퇴 기능을 위한 변수 설정
     private FirebaseAuth mFirebaseAuth;
@@ -102,6 +106,12 @@ public class MainActivity extends AppCompatActivity {
         navigationView.addHeaderView(ll_navigation_container);
 
         // 메뉴 이미지 눌렀을 때 메뉴가 나오는 부분
+
+        //StorageReference mStorageRef;
+        //mStorageRef = FirebaseStorage.getInstance().getReference();
+
+
+
         ivMenu = findViewById(R.id.iv_menu);
         drawerLayout = findViewById(R.id.drawerLayout);
         toolbar = findViewById(R.id.toolbar);
@@ -183,5 +193,9 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(getApplicationContext(),"한번 더 누르면 종료합니다",Toast.LENGTH_SHORT).show();
             }
         }
+
     }
+
+
+
 }
