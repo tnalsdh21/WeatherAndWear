@@ -1,17 +1,13 @@
 package kor.sookmyung.grad_project;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
 import android.content.Intent;
-import android.graphics.Color;
-import android.graphics.Typeface;
-import android.graphics.drawable.ColorDrawable;
-import android.graphics.drawable.DrawableWrapper;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -23,12 +19,14 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
@@ -155,6 +153,105 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             }
         });
+
+        //이미지 불러오기
+//        ImageView imgView1=findViewById(R.id.img_1);
+//        FirebaseStorage storage = FirebaseStorage.getInstance("gs://fir-weatherandwear.appspot.com/");
+//        StorageReference storageReference = storage.getReference();
+//        storageReference.child("musinsa_20220214/image0.jpg").getDownloadUrl()
+//                .addOnSuccessListener(new OnSuccessListener<Uri>(){
+//                    @Override
+//                    public void onSuccess(Uri uri){
+//                        Glide.with(getApplicationContext())
+//                                .load(uri)
+//                                .into(imgView1);
+//                    }
+//        }).addOnFailureListener(new OnFailureListener() {
+//            @Override
+//            public void onFailure(@NonNull Exception e) {
+//                Toast.makeText(getApplicationContext(), "이미지 불러오기 실패", Toast.LENGTH_SHORT).show();;
+//            }
+//        });
+        ImageView imgView0 = findViewById(R.id.img_0);
+        ImageView imgView1=findViewById(R.id.img_1);
+        ImageView imgView2=findViewById(R.id.img_2);
+        ImageView imgView3=findViewById(R.id.img_3);
+
+        ImageView imgView4=findViewById(R.id.img_4);
+        FirebaseStorage storage = FirebaseStorage.getInstance("gs://fir-weatherandwear.appspot.com/");
+        StorageReference storageReference = storage.getReference();
+        storageReference.child("musinsa_20220214/image0.jpg").getDownloadUrl()
+            .addOnSuccessListener(new OnSuccessListener<Uri>(){
+                @Override
+                public void onSuccess(Uri uri){
+                    Glide.with(getApplicationContext())
+                            .load(uri)
+                            .into(imgView0);
+                }
+    }).addOnFailureListener(new OnFailureListener() {
+        @Override
+        public void onFailure(@NonNull Exception e) {
+            Toast.makeText(getApplicationContext(), "이미지 불러오기 실패", Toast.LENGTH_SHORT).show();;
+        }
+    });
+        storageReference.child("musinsa_20220214/image1.jpg").getDownloadUrl()
+                .addOnSuccessListener(new OnSuccessListener<Uri>(){
+                    @Override
+                    public void onSuccess(Uri uri){
+                        Glide.with(getApplicationContext())
+                                .load(uri)
+                                .into(imgView1);
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Toast.makeText(getApplicationContext(), "이미지 불러오기 실패", Toast.LENGTH_SHORT).show();;
+            }
+        });
+        storageReference.child("musinsa_20220214/image2.jpg").getDownloadUrl()
+                .addOnSuccessListener(new OnSuccessListener<Uri>(){
+                    @Override
+                    public void onSuccess(Uri uri){
+                        Glide.with(getApplicationContext())
+                                .load(uri)
+                                .into(imgView2);
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Toast.makeText(getApplicationContext(), "이미지 불러오기 실패", Toast.LENGTH_SHORT).show();;
+            }
+        });
+        storageReference.child("musinsa_20220214/image3.jpg").getDownloadUrl()
+                .addOnSuccessListener(new OnSuccessListener<Uri>(){
+                    @Override
+                    public void onSuccess(Uri uri){
+                        Glide.with(getApplicationContext())
+                                .load(uri)
+                                .into(imgView3);
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Toast.makeText(getApplicationContext(), "이미지 불러오기 실패", Toast.LENGTH_SHORT).show();;
+            }
+        });
+        storageReference.child("musinsa_20220214/image4.jpg").getDownloadUrl()
+                .addOnSuccessListener(new OnSuccessListener<Uri>(){
+                    @Override
+                    public void onSuccess(Uri uri){
+                        Glide.with(getApplicationContext())
+                                .load(uri)
+                                .into(imgView4);
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Toast.makeText(getApplicationContext(), "이미지 불러오기 실패", Toast.LENGTH_SHORT).show();;
+            }
+        });
+
+
 
     }
 
