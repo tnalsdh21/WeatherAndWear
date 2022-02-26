@@ -12,9 +12,16 @@
         <entry key="..\:/Android(Java)/WeatherAndWear/app/src/main/res/layout/navi_menu.xml" value="0.1" />
         <entry key="..\:/Android(Java)/WeatherAndWear/app/src/main/res/layout/navigation_item.xml" value="0.25364583333333335" />
         <entry key="..\:/Android(Java)/WeatherAndWear/app/src/main/res/menu/navi_menu.xml" value="0.25364583333333335" />
+        <entry key="app/src/main/res/drawable/ic_baseline_account_circle_24.xml" value="0.22807017543859648" />
         <entry key="app/src/main/res/layout/activity_login.xml" value="0.2548245614035088" />
         <entry key="app/src/main/res/layout/activity_main.xml" value="0.16979166666666667" />
+        <entry key="app/src/main/res/layout/activity_main_splash_screen.xml" value="0.2679824561403509" />
+        <entry key="app/src/main/res/layout/activity_main_weather.xml" value="0.2679824561403509" />
+        <entry key="app/src/main/res/layout/activity_my_look_book.xml" value="0.2679824561403509" />
         <entry key="app/src/main/res/layout/activity_register.xml" value="0.2548245614035088" />
+        <entry key="app/src/main/res/layout/fragment2.xml" value="0.25" />
+        <entry key="app/src/main/res/layout/navigation_item.xml" value="0.2679824561403509" />
+        <entry key="app/src/main/res/xml/network_security_config.xml" value="0.22870370370370371" />
       </map>
     </option>
   </component>

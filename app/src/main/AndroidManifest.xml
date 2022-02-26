@@ -2,16 +2,29 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="kor.sookmyung.grad_project">
 
-<!--    밑에 인터넷 permission은 날씨 api때문에 추가-->
+<!--    밑에 2개의 permission은 날씨 api때문에 추가-->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+<!--    아래 2개는 안드로이드 기기 gps때문에 추가-->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+
+    <uses-feature android:name="android.hardware.camera" android:required="true"/>
 
     <application
+        android:name=".MyApplication"
+        android:usesCleartextTraffic="true"
         android:allowBackup="true"
+
         android:icon="@mipmap/ic_launcher"
         android:label="Weather&amp;Wear"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+<!--        android:networkSecurityConfig="@xml/network_security_config"-->
         <activity
             android:name=".MyLookBook"
             android:exported="false" />
