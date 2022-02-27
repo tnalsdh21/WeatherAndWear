@@ -1,6 +1,5 @@
 package kor.sookmyung.grad_project;
 
-import static kor.sookmyung.grad_project.TransLocalPoint.TO_GRID;
 
 import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
@@ -32,6 +31,7 @@ import android.location.LocationManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.telephony.CarrierConfigManager;
 import android.util.Log;
 import android.view.Gravity;
@@ -39,6 +39,7 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -70,6 +71,8 @@ import org.json.JSONObject;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserFactory;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -77,11 +80,13 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import kor.sookmyung.grad_project.data.WeatherItem;
-import kor.sookmyung.grad_project.data.WeatherResult;
+import jxl.Sheet;
+import jxl.Workbook;
+import jxl.read.biff.BiffException;
 
 
-public class MainActivity extends AppCompatActivity implements  OnRequestListener, MyApplication.OnResponseListener{
+
+public class MainActivity extends AppCompatActivity {
     // 로그아웃 기능과 탈퇴 기능을 위한 변수 설정
     private FirebaseAuth mFirebaseAuth;
 
@@ -91,18 +96,15 @@ public class MainActivity extends AppCompatActivity implements  OnRequestListene
     private Toolbar toolbar;
 
     //날씨 api
-    private static final String TAG = "MainActivity";
+    private String[] weather ;
+    private String x = "", y = "", address = "";
+    private double latitude, longitude;
+    private String date ="", time = "";
+    private GpsTracker gpsTracker;
 
-    Fragment2 fragment2;
-
-    Location currentLocation;
-    GPSListener gpsListener;
-
-    int locationCount = 0;
-    String currentWeather;
-    String currentAddress;
-    String currentDateString;
-    Date currentDate;
+    private static final int GPS_ENABLE_REQUEST_CODE = 2001;
+    private static final int PERMISSIONS_REQUEST_CODE = 100;
+    String[] REQUIRED_PERMISSIONS  = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -290,43 +292,82 @@ public class MainActivity extends AppCompatActivity implements  OnRequestListene
             }
         });
 
-        //날씨 책
-        fragment2 = new Fragment2();
-        getSupportFragmentManager().beginTransaction()
-                .replace(R.id.fragment_container, fragment2).commit();
-        AndPermission.with(this)
-                .runtime()
-                .permission(
-                        Permission.ACCESS_FINE_LOCATION,
-                        Permission.READ_EXTERNAL_STORAGE,
-                        Permission.WRITE_EXTERNAL_STORAGE)
-                .onGranted(new Action<List<String>>() {
-                    @Override
-                    public void onAction(List<String> permissions) {
-                        showToast("허용된 권한 갯수 : " + permissions.size());
+        //날씨
+        if(!checkLocationServicesStatus()){
+            showDialogForLocationServiceSetting();
+        }
+        else{
+            checkRunTimePermission();
+        }
+        final TextView textView_date = (TextView) findViewById(R.id.dateTextView);
+        final TextView textView_address = (TextView) findViewById(R.id.locationTextView);
+        Button ShowLocationButton = (Button)findViewById(R.id.refreshButton);
+        ShowLocationButton.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View arg0){
+                gpsTracker = new GpsTracker(MainActivity.this);
+                latitude = gpsTracker.getLatitude();
+                longitude = gpsTracker.getLongitude();
+
+                String address = getCurrentAddress(latitude, longitude);
+                String[] local = address.split(" ");
+                if(address!=null){
+                    String localName = local[1]; //~~구 받아오기
+                    readExcel(localName);//행정시 이름으로 격자값구하기
+                }
+
+                WeatherData wd = new WeatherData();
+
+                //date, time 값넣기
+                Date mDate = new Date();
+                SimpleDateFormat mFormat = new SimpleDateFormat("yyyyMMdd");
+                date = mFormat.format(mDate);
+                SimpleDateFormat mFormat2 = new SimpleDateFormat("HH00");
+                time = mFormat2.format(mDate);
+                x = Integer.toString((int)Math.round(latitude));
+                y = Integer.toString((int)Math.round(longitude));
+
+                new Thread(()->{
+                    try {
+                        weather = wd.lookUpWeather(date, time, x, y).clone();
+                        if(weather==null)
+                            Toast.makeText(MainActivity.this, "야 널이다", Toast.LENGTH_LONG).show();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } catch (JSONException e) {
+                        e.printStackTrace();
                     }
-                })
-                .onDenied(new Action<List<String>>() {
-                    @Override
-                    public void onAction(List<String> permissions) {
-                        showToast("거부된 권한 갯수 : " + permissions.size());
+                }).start();
+
+                TextView weatherIcon = (TextView) findViewById(R.id.weatherIcon);
+                TextView nowTemp = (TextView) findViewById(R.id.nowTempTextView);
+                TextView minMaxTemp = (TextView)findViewById(R.id.minMaxTempTextView);
+                if(weather!=null){
+                    if(weather[0].equals("0")){  // 비/눈 안옴
+                        weatherIcon.setText(weather[1]);
+                    }else { // 비/눈 온다
+                        weatherIcon.setText(weather[0]);
                     }
-                })
-                .start();
+                    nowTemp.setText(weather[2]);
+                    minMaxTemp.setText(weather[3]+"/"+weather[4]);
+                }else{
+                    ;
+                }
+
+
+
+                textView_address.setText(address);
+                SimpleDateFormat month = new SimpleDateFormat("M");
+                SimpleDateFormat day =new SimpleDateFormat("dd");
+                textView_date.setText(month.format(mDate)+"월"+day.format(mDate)+"일");
+
+            }
+        });
+
+
+
     } /// onCreate
 
-    // 메뉴 중 하나 들어갔다가 뒤로 가기 눌렀을 때 동작하는 부분
-    /*@Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case android.R.id.home: { // toolbar 의 back 키 눌렀을 때 동작
-                drawerLayout.openDrawer(GravityCompat.START);
-                return true;
-            }
-            default:
-                return super.onOptionsItemSelected(item);
-        }
-    }*/
 
     // 메뉴가 열려 있을 때 백버튼 메인으로 돌아간다. 메인화면에서 백버튼 2회 눌렀을 때 종료
     private final long FINISH_INTERVAL_TIME = 2000;
@@ -354,232 +395,213 @@ public class MainActivity extends AppCompatActivity implements  OnRequestListene
     }
 
     //////////////////////////////////////////////////////
-    //날씨 위치
-    public void showToast(String message) {
-        Toast.makeText(this, message, Toast.LENGTH_LONG).show();
-    }
+    public void readExcel(String localName){
+        try{
+            InputStream is = getBaseContext().getResources().getAssets().open("local_name.xls");
+            Workbook wb = Workbook.getWorkbook(is);
 
+            if (wb != null) {
+                Sheet sheet = wb.getSheet(0);   // 시트 불러오기
+                if (sheet != null) {
+                    int colTotal = sheet.getColumns();    // 전체 컬럼
+                    int rowIndexStart = 1;                  // row 인덱스 시작
+                    int rowTotal = sheet.getColumn(colTotal - 1).length;
 
-
-    public void onRequest(String command) {
-        if (command != null) {
-            if (command.equals("getCurrentLocation")) {
-                getCurrentLocation();
-            }
-        }
-    }
-
-    public void getCurrentLocation() {
-        // set current time
-        currentDate = new Date();
-        currentDateString = AppConstants.dateFormat3.format(currentDate);
-        if (fragment2 != null) {
-            fragment2.setDateString(currentDateString);
-        }
-
-
-        LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-
-        try {
-            currentLocation = manager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-            if (currentLocation != null) {
-                double latitude = currentLocation.getLatitude();
-                double longitude = currentLocation.getLongitude();
-                String message = "Last Location -> Latitude : " + latitude + "\nLongitude:" + longitude;
-                println(message);
-
-                getCurrentWeather();
-                getCurrentAddress();
-            }
-
-            gpsListener = new GPSListener();
-            long minTime = 10000;
-            float minDistance = 0;
-
-            manager.requestLocationUpdates(
-                    LocationManager.GPS_PROVIDER,
-                    minTime, minDistance, gpsListener);
-
-            println("Current location requested.");
-
-        } catch(SecurityException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void stopLocationService() {
-        LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-
-        try {
-            manager.removeUpdates(gpsListener);
-
-            println("Current location requested.");
-
-        } catch(SecurityException e) {
-            e.printStackTrace();
-        }
-    }
-
-    class GPSListener implements LocationListener {
-        public void onLocationChanged(Location location) {
-            currentLocation = location;
-
-            locationCount++;
-
-            Double latitude = location.getLatitude();
-            Double longitude = location.getLongitude();
-
-            String message = "Current Location -> Latitude : "+ latitude + "\nLongitude:"+ longitude;
-            println(message);
-
-            getCurrentWeather();
-            getCurrentAddress();
-        }
-
-        public void onProviderDisabled(String provider) { }
-
-        public void onProviderEnabled(String provider) { }
-
-        public void onStatusChanged(String provider, int status, Bundle extras) { }
-    }
-
-    public void getCurrentAddress() {
-        Geocoder geocoder = new Geocoder(this, Locale.getDefault());
-        List<Address> addresses = null;
-
-        try {
-            addresses = geocoder.getFromLocation(
-                    currentLocation.getLatitude(),
-                    currentLocation.getLongitude(),
-                    1);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        if (addresses != null && addresses.size() > 0) {
-            currentAddress = null;
-
-            Address address = addresses.get(0);
-            if (address.getLocality() != null) {
-                currentAddress = address.getLocality();
-            }
-
-            if (address.getSubLocality() != null) {
-                if (currentAddress != null) {
-                    currentAddress +=  " " + address.getSubLocality();
-                } else {
-                    currentAddress = address.getSubLocality();
-                }
-            }
-
-            String adminArea = address.getAdminArea();
-            String country = address.getCountryName();
-            println("Address : " + country + " " + adminArea + " " + currentAddress);
-
-            if (fragment2 != null) {
-                fragment2.setAddress(currentAddress);
-            }
-        }
-    }
-
-    public void getCurrentWeather() {
-
-        Map<String, Double> gridMap = GridUtil.getGrid(currentLocation.getLatitude(), currentLocation.getLongitude());
-        double gridX = gridMap.get("x");
-        double gridY = gridMap.get("y");
-        println("x -> " + gridX + ", y -> " + gridY);
-
-        sendLocalWeatherReq(gridX, gridY);
-
-    }
-
-    public void sendLocalWeatherReq(double gridX, double gridY) {
-        String url = "http://www.kma.go.kr/wid/queryDFS.jsp";
-        url += "?gridx=" + Math.round(gridX);
-        url += "&gridy=" + Math.round(gridY);
-
-        Map<String,String> params = new HashMap<String,String>();
-
-        MyApplication.send(AppConstants.REQ_WEATHER_BY_GRID, Request.Method.GET, url, params, this);
-    }
-
-    public void processResponse(int requestCode, int responseCode, String response) {
-        if (responseCode == 200) {
-            if (requestCode == AppConstants.REQ_WEATHER_BY_GRID) {
-                // Grid 좌표를 이용한 날씨 정보 처리 응답
-                //println("response -> " + response);
-
-                XmlParserCreator parserCreator = new XmlParserCreator() {
-                    @Override
-                    public XmlPullParser createParser() {
-                        try {
-                            return XmlPullParserFactory.newInstance().newPullParser();
-                        } catch (Exception e) {
-                            throw new RuntimeException(e);
+                    for (int row = rowIndexStart; row < rowTotal; row++) {
+                        String contents = sheet.getCell(0, row).getContents();
+                        if (contents.contains(localName)) {
+                            x = sheet.getCell(1, row).getContents();
+                            y = sheet.getCell(2, row).getContents();
+                            row = rowTotal;
                         }
                     }
-                };
-
-                GsonXml gsonXml = new GsonXmlBuilder()
-                        .setXmlParserCreator(parserCreator)
-                        .setSameNameLists(true)
-                        .create();
-
-                WeatherResult weather = gsonXml.fromXml(response, WeatherResult.class);
-
-                // 현재 기준 시간
-                try {
-                    Date tmDate = AppConstants.dateFormat.parse(weather.header.tm);
-                    String tmDateText = AppConstants.dateFormat2.format(tmDate);
-                    println("기준 시간 : " + tmDateText);
-
-                    for (int i = 0; i < weather.body.datas.size(); i++) {
-                        WeatherItem item = weather.body.datas.get(i);
-                        println("#" + i + " 시간 : " + item.hour + "시, " + item.day + "일째");
-                        println("  날씨 : " + item.wfKor);
-                        println("  기온 : " + item.temp + " C");
-                        println("  강수확률 : " + item.pop + "%");
-
-                        println("debug 1 : " + (int)Math.round(item.ws * 10));
-                        float ws = Float.valueOf(String.valueOf((int)Math.round(item.ws * 10))) / 10.0f;
-                        println("  풍속 : " + ws + " m/s");
-                    }
-
-                    // set current weather
-                    WeatherItem item = weather.body.datas.get(0);
-                    currentWeather = item.wfKor;
-                    if (fragment2 != null) {
-                        fragment2.setWeather(item.wfKor);
-//                        fragment2.setMaxTempTextView(Double.toString(item.tmx));
-//                        fragment2.setNowTempTextView(Double.toString(item.temp));
-
-                    }
-
-                    // stop request location service after 2 times
-                    if (locationCount > 1) {
-                        stopLocationService();
-                    }
-
-                } catch(Exception e) {
-                    e.printStackTrace();
                 }
+            }
+        } catch (IOException e) {
+            Log.i("READ_EXCEL1", e.getMessage());
+            e.printStackTrace();
+        } catch (BiffException e) {
+            Log.i("READ_EXCEL1", e.getMessage());
+            e.printStackTrace();
+        }
+        Log.i("격자값", "x = " + x + "  y = " + y);
+
+    }
+    //날씨 위치
+    //ActivityCompat.requestPermissions를 사용한 퍼미션 요청의 결과를 리턴받는 메소드입니다.
+    @Override
+    public void onRequestPermissionsResult(int permsRequestCode,
+                                           @NonNull String[] permissions,
+                                           @NonNull int[] grandResults) {
+
+        super.onRequestPermissionsResult(permsRequestCode, permissions, grandResults);
+        if (permsRequestCode == PERMISSIONS_REQUEST_CODE && grandResults.length == REQUIRED_PERMISSIONS.length) {
+
+            // 요청 코드가 PERMISSIONS_REQUEST_CODE 이고, 요청한 퍼미션 개수만큼 수신되었다면
+
+            boolean check_result = true;
+
+
+            // 모든 퍼미션을 허용했는지 체크합니다.
+
+            for (int result : grandResults) {
+                if (result != PackageManager.PERMISSION_GRANTED) {
+                    check_result = false;
+                    break;
+                }
+            }
+
+
+            if (check_result) {
+
+                //위치 값을 가져올 수 있음
+                ;
+            } else {
+                // 거부한 퍼미션이 있다면 앱을 사용할 수 없는 이유를 설명해주고 앱을 종료합니다.2 가지 경우가 있습니다.
+
+                if (ActivityCompat.shouldShowRequestPermissionRationale(this, REQUIRED_PERMISSIONS[0])
+                        || ActivityCompat.shouldShowRequestPermissionRationale(this, REQUIRED_PERMISSIONS[1])) {
+
+                    Toast.makeText(MainActivity.this, "퍼미션이 거부되었습니다. 앱을 다시 실행하여 퍼미션을 허용해주세요.", Toast.LENGTH_LONG).show();
+                    finish();
+
+
+                } else {
+
+                    Toast.makeText(MainActivity.this, "퍼미션이 거부되었습니다. 설정(앱 정보)에서 퍼미션을 허용해야 합니다. ", Toast.LENGTH_LONG).show();
+
+                }
+            }
+
+        }
+    }
+
+    void checkRunTimePermission(){
+
+        //런타임 퍼미션 처리
+        // 1. 위치 퍼미션을 가지고 있는지 체크합니다.
+        int hasFineLocationPermission = ContextCompat.checkSelfPermission(MainActivity.this,
+                Manifest.permission.ACCESS_FINE_LOCATION);
+        int hasCoarseLocationPermission = ContextCompat.checkSelfPermission(MainActivity.this,
+                Manifest.permission.ACCESS_COARSE_LOCATION);
+
+
+        if (hasFineLocationPermission == PackageManager.PERMISSION_GRANTED &&
+                hasCoarseLocationPermission == PackageManager.PERMISSION_GRANTED) {
+
+            // 2. 이미 퍼미션을 가지고 있다면
+            // ( 안드로이드 6.0 이하 버전은 런타임 퍼미션이 필요없기 때문에 이미 허용된 걸로 인식합니다.)
+
+
+            // 3.  위치 값을 가져올 수 있음
+
+
+
+        } else {  //2. 퍼미션 요청을 허용한 적이 없다면 퍼미션 요청이 필요합니다. 2가지 경우(3-1, 4-1)가 있습니다.
+
+            // 3-1. 사용자가 퍼미션 거부를 한 적이 있는 경우에는
+            if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, REQUIRED_PERMISSIONS[0])) {
+
+                // 3-2. 요청을 진행하기 전에 사용자가에게 퍼미션이 필요한 이유를 설명해줄 필요가 있습니다.
+                Toast.makeText(MainActivity.this, "이 앱을 실행하려면 위치 접근 권한이 필요합니다.", Toast.LENGTH_LONG).show();
+                // 3-3. 사용자게에 퍼미션 요청을 합니다. 요청 결과는 onRequestPermissionResult에서 수신됩니다.
+                ActivityCompat.requestPermissions(MainActivity.this, REQUIRED_PERMISSIONS,
+                        PERMISSIONS_REQUEST_CODE);
 
 
             } else {
-                // Unknown request code
-                println("Unknown request code : " + requestCode);
-
+                // 4-1. 사용자가 퍼미션 거부를 한 적이 없는 경우에는 퍼미션 요청을 바로 합니다.
+                // 요청 결과는 onRequestPermissionResult에서 수신됩니다.
+                ActivityCompat.requestPermissions(MainActivity.this, REQUIRED_PERMISSIONS,
+                        PERMISSIONS_REQUEST_CODE);
             }
-
-        } else {
-            println("Failure response code : " + responseCode);
 
         }
 
     }
 
-    private void println(String data) {
-        Log.d(TAG, data);
+    public String getCurrentAddress( double latitude, double longitude) {
+
+        //지오코더... GPS를 주소로 변환
+        Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+
+        List<Address> addresses;
+
+        try {
+
+            addresses = geocoder.getFromLocation(
+                    latitude,
+                    longitude,
+                    7);
+        } catch (IOException ioException) {
+            //네트워크 문제
+            Toast.makeText(this, "지오코더 서비스 사용불가", Toast.LENGTH_LONG).show();
+            return "지오코더 서비스 사용불가";
+        } catch (IllegalArgumentException illegalArgumentException) {
+            Toast.makeText(this, "잘못된 GPS 좌표", Toast.LENGTH_LONG).show();
+            return "잘못된 GPS 좌표";
+
+        }
+
+
+
+        if (addresses == null || addresses.size() == 0) {
+            Toast.makeText(this, "주소 미발견", Toast.LENGTH_LONG).show();
+            return "주소 미발견";
+
+        }
+
+        Address address = addresses.get(0);
+        return address.getAddressLine(0).toString()+"\n";
+
     }
 
+    //여기서부터는 GPS 활성화를 위한 메소드
+    ActivityResultLauncher<Intent> startActivityResult= registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            new ActivityResultCallback<ActivityResult>() {
+                @Override
+                public void onActivityResult(ActivityResult result) {
+                    if(result.getResultCode()==RESULT_OK){
+                        //사용자가 gps 활성시켰는지 검사
+                        if(checkLocationServicesStatus()){
+                            if(checkLocationServicesStatus()){
+                                Log.d("@@@","onActivityResult : GPS활성화 되어있음");
+                                checkRunTimePermission();
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+    );
+    private void showDialogForLocationServiceSetting(){
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+        builder.setTitle("위치 서비스 비활성화");
+        builder.setMessage("앱을 사용하기 위해서는 위치 서비스가 필요합니다.\n"
+                            +"위치 설정을 수정하실래요?");
+        builder.setCancelable(true);
+        builder.setPositiveButton("설정", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                Intent callGPSSettingIntent
+                        = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                startActivityResult.launch(callGPSSettingIntent);
+            }
+        });
+        builder.setNegativeButton("취소", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                dialogInterface.cancel();
+            }
+        });
+        builder.create().show();
+
+    }
+    public boolean checkLocationServicesStatus(){
+        LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+
+        return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+                || locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+    }
 }
